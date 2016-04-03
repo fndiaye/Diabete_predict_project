@@ -1,0 +1,71 @@
+Diabete progression prediction project presentation
+========================================================
+author: Fndiaye
+date: 3rd April 2016
+
+Project Presentation
+========================================================
+
+This project aims to create an application to predict the progression of the diabete desease.
+This presentation contains:
+
+- Presentation of the used data
+- Data analysis operation 
+- Result of the analysis
+
+Presentation of the used data
+========================================================
+
+The data come from the site http://www4.stat.ncsu.edu/~boos/var.select/diabetes.html. They are from Bradley Efron, Trevor Hastie, Iain Johnstone and Robert Tibshirani (2004) "Least Angle Regression," Annals of Statistics (with discussion), 407-499.
+
+In the dataset, we have ten baseline variables, age, sex, body mass index, average blood pressure, and six blood serum measurements were obtained for each of n = 442 diabetes patients, as well as the response of interest, a quantitative measure of disease progression one year after baseline.
+
+In the provided tab delimited file, the variables are named: 
+AGE SEX BMI BP S1 S2 S3 S4 S5 S6 Y
+whereas, in the R file, they are named:
+age sex bmi map tc ldl hdl tch ltg glu y
+
+Data Analysis operation
+========================================================
+Download of the data and necessary packages
+```{r, echo=FALSE}
+library(shiny)
+library(randomForest)
+library(caret)
+
+fileURL <- "http://www4.stat.ncsu.edu/~boos/var.select/diabetes.tab.txt"
+file <- download.file(fileURL, destfile = "./diabetes.txt")
+diabeteData <- read.table("./diabetes.txt", header = TRUE)
+```
+Explore data
+```{r, echo=FALSE}
+summary(diabeteData)
+```
+Model design for predicting the desease progression (Y variable)
+```{r, echo=FALSE}
+## Data partition
+  training <- diabeteData
+  inTrain = createDataPartition(training$Y, p = 0.7, list=FALSE)
+  trainset = training[ inTrain,]
+  testset = training[-inTrain,]
+  
+  ## RF model
+  modelrf <- train(Y ~ ., data = trainset, method = "rf", trControl = trainControl(method="cv", number=3))
+  finmod <- modelrf$finalModel
+```
+
+Results of the analysis
+========================================================
+
+Application of the model on the values entered by the user of the application. The values are given as examples
+```{r, echo=FALSE}
+test <- data.frame("AGE" <- 30, "SEX" <- 1, "BMI" <- 30, "BP" <- 80, "S1" <- 110, "S2" <- 110, "S3" <- 50, "S4" <- 5, "S5" <- 4, "S6" <- 92)
+  
+colnames(test) <- c("AGE","SEX","BMI","BP","S1","S2","S3","S4","S5","S6")
+## Model application on the entered values
+  res <- predict(modelrf, test)
+```
+```{r}
+test
+res
+```
